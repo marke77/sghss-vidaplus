@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VidaPlus SGHSS | Modern</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', "sans-serif"],
+            },
+            colors: {
+              brand: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                500: "#0ea5e9", // Sky Blue
+                600: "#0284c7",
+                900: "#0c4a6e",
+              },
+              secondary: {
+                500: "#6366f1", // Indigo
+              },
+            },
+            animation: {
+              "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* Custom Utilities */
+      body {
+        background-color: #f8fafc;
+      }
+
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* Animations */
+      .fade-enter {
+        animation: fadeEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes fadeEnter {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Paper Effect for Documents */
+      .paper-shadow {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Calendar Styles */
+      .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.875rem;
+      }
+      .calendar-day:hover:not(.disabled):not(.selected) {
+        background-color: #f1f5f9;
+      }
+      .calendar-day.selected {
+        background-color: #0ea5e9;
+        color: white;
+        font-weight: bold;
+      }
+      .calendar-day.disabled {
+        color: #cbd5e1;
+        cursor: not-allowed;
+      }
+      .calendar-day.today {
+        border: 1px solid #0ea5e9;
+        color: #0ea5e9;
+      }
+
+      /* Chart Bars Animation */
+      .chart-bar {
+        transition: height 1s ease-out;
+        height: 0;
+      }
+    </style>
+  </head>
+  <body class="text-slate-800 h-screen overflow-hidden flex flex-col">
+    <!-- ==================== STATE MANAGEMENT & MOCK DB ==================== -->
+    <script>
+      const db = {
+        doctors: [
+          {
+            id: 1,
+            name: "Dra. Fernanda Lima",
+            spec: "Dermatologia",
+            crm: "12345-SP",
+            img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Fernanda",
+            rating: 4.9,
+            price: "R$ 250",
+          },
+          {
+            id: 2,
+            name: "Dr. Roberto Silva",
+            spec: "Cardiologia",
+            crm: "54321-SP",
+            img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Robert",
+            rating: 4.8,
+            price: "R$ 300",
+          },
+          {
+            id: 3,
+            name: "Dra. Julia Santos",
+            spec: "Pediatria",
+            crm: "98765-RJ",
+            img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Julia",
+            rating: 5.0,
+            price: "R$ 280",
+          },
+          {
+            id: 4,
+            name: "Dr. Marco Polo",
+            spec: "Ortopedia",
+            crm: "11223-MG",
+            img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marco",
+            rating: 4.7,
+            price: "R$ 350",
+          },
+          {
+            id: 5,
+            name: "Dra. Ana Costa",
+            spec: "Ginecologia",
+            crm: "88990-SP",
+            img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ana",
+            rating: 4.9,
+            price: "R$ 290",
+          },
+          {
+            id: 6,
+            name: "Dr. Lucas Mendes",
+            spec: "Oftalmologia",
+            crm: "77665-RJ",
+            img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas",
+            rating: 4.6,
+            price: "R$ 220",
+          },
+        ],
+        users: [
+          { id: 1, name: "João da Silva", role: "Paciente", status: "Ativo" },
+          { id: 2, name: "Dr. Roberto", role: "Médico", status: "Ativo" },
+          { id: 3, name: "Admin System", role: "Admin", status: "Ativo" },
+        ],
+        appointments: [
+          {
+            id: 101,
+            patientName: "João da Silva",
+            doctorName: "Dr. Roberto Silva",
+            spec: "Cardiologia",
+            date: "2025-10-24",
+            time: "14:30",
+            type: "Telemedicina",
+            status: "Confirmado",
+          },
+          {
+            id: 102,
+            patientName: "Maria Oliveira",
+            doctorName: "Dr. Roberto Silva",
+            spec: "Cardiologia",
+            date: "2025-10-24",
+            time: "16:00",
+            type: "Presencial",
+            status: "Pendente",
+          },
+        ],
+        // Admin Financial Mock Data
+        financials: {
+          revenue: 124500,
+          expenses: {
+            payroll: 45000,
+            taxes: 12500,
+            maintenance: 8000,
+            supplies: 15000,
+          },
+          patientsByMonth: [
+            65, 59, 80, 81, 56, 95, 110, 105, 120, 115, 130, 145,
+          ], // Jan-Dec
+        },
+        // Mock Medical Records
+        records: {
+          "João da Silva": {
+            age: 34,
+            bloodType: "O+",
+            height: "1.78m",
+            weight: "82kg",
+            allergies: ["Dipirona", "Sulfa"],
+            conditions: ["Hipertensão Leve"],
+            history: [
+              {
+                date: "10/08/2025",
+                type: "Consulta",
+                note: "Paciente relatou dores de cabeça frequentes.",
+              },
+              {
+                date: "15/05/2025",
+                type: "Exame",
+                note: "Hemograma completo - Normal.",
+              },
+            ],
+          },
+          "Maria Oliveira": {
+            age: 29,
+            bloodType: "A+",
+            height: "1.65m",
+            weight: "60kg",
+            allergies: [],
+            conditions: ["Asma"],
+            history: [
+              { date: "20/09/2025", type: "Consulta", note: "Check-up anual." },
+            ],
+          },
+        },
+      };
+
+      let appState = {
+        view: "login",
+        role: "patient",
+        booking: { doctor: null, date: null, time: null },
+        currentPatientRecord: null,
+        editingUserId: null, // For Admin Edit Mode
+      };
+    </script>
+
+    <!-- ==================== 1. TELA DE LOGIN ==================== -->
+    <section id="view-login" class="absolute inset-0 z-50 flex bg-white">
+      <!-- Esquerda: Brand -->
+      <div
+        class="hidden lg:flex w-1/2 bg-gradient-to-br from-brand-600 to-secondary-500 items-center justify-center relative overflow-hidden"
+      >
+        <div
+          class="absolute inset-0 opacity-20"
+          style="
+            background-image: url('https://www.transparenttextures.com/patterns/medical-icons.png');
+          "
+        ></div>
+        <div class="z-10 text-center text-white p-12">
+          <div
+            class="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/30"
+          >
+            <i data-lucide="activity" class="w-10 h-10 text-white"></i>
+          </div>
+          <h1 class="text-4xl font-bold mb-4">VidaPlus SGHSS</h1>
+          <p class="text-lg text-blue-100 max-w-md mx-auto">
+            Gestão hospitalar inteligente. Sua saúde em um clique.
+          </p>
+        </div>
+      </div>
+
+      <!-- Direita: Login -->
+      <div
+        class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-50"
+      >
+        <div class="max-w-md w-full">
+          <div class="mb-8 text-center lg:text-left">
+            <h2 class="text-2xl font-bold text-slate-900">Acessar Sistema</h2>
+            <p class="text-slate-500">Escolha seu perfil para continuar.</p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 mb-8">
+            <button
+              onclick="selectRole('patient')"
+              id="role-btn-patient"
+              class="role-card p-4 rounded-xl border-2 border-brand-500 bg-brand-50 text-brand-700 flex flex-col items-center gap-2 transition-all"
+            >
+              <i data-lucide="user" class="w-6 h-6"></i
+              ><span class="text-sm font-semibold">Paciente</span>
+            </button>
+            <button
+              onclick="selectRole('doctor')"
+              id="role-btn-doctor"
+              class="role-card p-4 rounded-xl border-2 border-transparent hover:border-slate-200 bg-white text-slate-500 flex flex-col items-center gap-2 transition-all"
+            >
+              <i data-lucide="stethoscope" class="w-6 h-6"></i
+              ><span class="text-sm font-semibold">Médico</span>
+            </button>
+            <button
+              onclick="selectRole('admin')"
+              id="role-btn-admin"
+              class="role-card p-4 rounded-xl border-2 border-transparent hover:border-slate-200 bg-white text-slate-500 flex flex-col items-center gap-2 transition-all"
+            >
+              <i data-lucide="shield-check" class="w-6 h-6"></i
+              ><span class="text-sm font-semibold">Admin</span>
+            </button>
+          </div>
+
+          <form onsubmit="handleLogin(event)" class="space-y-4">
+            <!-- IDs adicionados para validação -->
+            <input
+              type="text"
+              id="login-email"
+              class="w-full pl-4 pr-4 py-3 rounded-lg border border-slate-200 focus:border-brand-500 outline-none"
+              value="usuario@vidaplus.com"
+            />
+            <input
+              type="password"
+              id="login-password"
+              class="w-full pl-4 pr-4 py-3 rounded-lg border border-slate-200 focus:border-brand-500 outline-none"
+              value="123456"
+            />
+            <button
+              type="submit"
+              class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-brand-500/30 transition-all flex items-center justify-center gap-2"
+            >
+              <span>Entrar</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== APP LAYOUT ==================== -->
+    <div id="view-app" class="hidden flex h-full relative">
+      <!-- Sidebar -->
+      <aside
+        class="hidden md:flex flex-col w-20 lg:w-64 bg-white border-r border-slate-200 h-full z-20"
+      >
+        <div class="p-6 flex items-center gap-3 border-b border-slate-100">
+          <div
+            class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center shrink-0"
+          >
+            <i data-lucide="activity" class="w-5 h-5 text-white"></i>
+          </div>
+          <span
+            class="font-bold text-lg text-slate-800 hidden lg:block tracking-tight"
+            >VidaPlus</span
+          >
+        </div>
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto" id="main-nav"></nav>
+        <div class="p-4 border-t border-slate-100">
+          <button
+            onclick="logout()"
+            class="flex items-center gap-3 p-3 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors w-full"
+          >
+            <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i>
+            <span class="hidden lg:block font-medium">Sair</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main
+        class="flex-1 flex flex-col relative overflow-hidden bg-slate-50/50"
+      >
+        <header
+          class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-10 sticky top-0"
+        >
+          <div class="md:hidden flex items-center gap-2">
+            <i data-lucide="activity" class="text-brand-600 w-6 h-6"></i>
+            <span class="font-bold text-lg">VidaPlus</span>
+          </div>
+          <h2
+            id="page-title"
+            class="hidden md:block text-xl font-bold text-slate-800"
+          >
+            Dashboard
+          </h2>
+          <div class="flex items-center gap-4">
+            <div class="text-right hidden sm:block">
+              <p
+                class="text-sm font-bold text-slate-700 leading-tight"
+                id="header-user-name"
+              >
+                Usuário
+              </p>
+              <p
+                class="text-xs text-brand-600 font-medium"
+                id="header-user-role"
+              >
+                Role
+              </p>
+            </div>
+            <img
+              id="header-user-avatar"
+              src=""
+              class="w-9 h-9 rounded-full bg-slate-200 object-cover border-2 border-white shadow-sm"
+            />
+          </div>
+        </header>
+
+        <div
+          id="content-area"
+          class="flex-1 overflow-y-auto p-4 lg:p-8 relative"
+        >
+          <!-- DASHBOARD PACIENTE -->
+          <div
+            id="dashboard-patient"
+            class="view-section hidden space-y-8 fade-enter"
+          >
+            <div
+              class="rounded-3xl bg-gradient-to-r from-brand-500 to-secondary-500 p-8 text-white shadow-xl shadow-brand-500/20 relative overflow-hidden"
+            >
+              <div class="relative z-10">
+                <h2 class="text-3xl font-bold mb-2">Olá, João!</h2>
+                <p class="text-brand-100 mb-6 max-w-lg">
+                  Sua saúde está em dia. Precisa falar com um especialista hoje?
+                </p>
+                <button
+                  onclick="navigateTo('view-search')"
+                  class="bg-white text-brand-600 px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2"
+                >
+                  <i data-lucide="calendar-plus" class="w-4 h-4"></i> Agendar
+                  Nova Consulta
+                </button>
+              </div>
+              <div
+                class="absolute -right-10 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"
+              ></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 space-y-6">
+                <div class="flex justify-between items-end">
+                  <h3 class="text-xl font-bold text-slate-800">
+                    Próximos Compromissos
+                  </h3>
+                </div>
+                <div id="patient-appointments-list" class="space-y-4"></div>
+              </div>
+              <div class="space-y-6">
+                <h3 class="text-xl font-bold text-slate-800">Acesso Rápido</h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div
+                    onclick="showPrototypeMessage('Acessar Exames')"
+                    class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm cursor-pointer hover:border-brand-300 transition-colors"
+                  >
+                    <i
+                      data-lucide="file-text"
+                      class="w-6 h-6 text-green-500 mb-2"
+                    ></i>
+                    <h4 class="font-bold">Exames</h4>
+                  </div>
+                  <div
+                    onclick="showPrototypeMessage('Minhas Receitas')"
+                    class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm cursor-pointer hover:border-brand-300 transition-colors"
+                  >
+                    <i
+                      data-lucide="pill"
+                      class="w-6 h-6 text-orange-500 mb-2"
+                    ></i>
+                    <h4 class="font-bold">Receitas</h4>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DASHBOARD MÉDICO -->
+          <div
+            id="dashboard-doctor"
+            class="view-section hidden space-y-6 fade-enter"
+          >
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
+              <div class="lg:col-span-1 space-y-4">
+                <div
+                  class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center"
+                >
+                  <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Robert"
+                    class="w-20 h-20 rounded-full bg-slate-50 mx-auto mb-3"
+                  />
+                  <h3 class="font-bold text-lg">Dr. Roberto</h3>
+                  <p class="text-slate-500 text-sm mb-4">Cardiologista</p>
+                  <div
+                    class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600"
+                  >
+                    <span class="font-bold block">Horário do Sistema</span>
+                    <span
+                      id="system-time-display"
+                      class="text-lg font-mono text-brand-600"
+                      >--:--</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-100 p-6"
+              >
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="font-bold text-xl">Agenda do Dia</h3>
+                  <span
+                    class="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded"
+                    >AO VIVO</span
+                  >
+                </div>
+                <div
+                  class="relative pl-6 border-l-2 border-slate-100 space-y-8"
+                  id="doctor-agenda-list"
+                >
+                  <!-- Agenda Médica preenchida via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BUSCA / AGENDAMENTO (Paciente) -->
+          <div
+            id="view-search"
+            class="view-section hidden space-y-6 fade-enter"
+          >
+            <div class="flex items-center gap-4 mb-6">
+              <button
+                onclick="navigateTo('dashboard-patient')"
+                class="p-2 hover:bg-slate-200 rounded-full transition-colors"
+              >
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+              </button>
+              <h2 class="text-2xl font-bold">Encontrar Especialista</h2>
+            </div>
+
+            <div class="relative max-w-2xl mx-auto mb-8">
+              <i
+                data-lucide="search"
+                class="absolute left-5 top-4 text-slate-400 w-6 h-6"
+              ></i>
+              <input
+                type="text"
+                oninput="renderDoctorsList(this.value)"
+                placeholder="Busque por nome ou especialidade..."
+                class="w-full pl-14 pr-4 py-4 rounded-full border border-slate-200 shadow-sm focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all text-lg"
+              />
+            </div>
+
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              id="doctors-grid"
+            >
+              <!-- Grid de Médicos -->
+            </div>
+          </div>
+
+          <!-- ADMIN DASHBOARD (Atualizado com Financeiro) -->
+          <div id="dashboard-admin" class="view-section hidden fade-enter">
+            <!-- Cards Financeiros -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div
+                class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm"
+              >
+                <p class="text-slate-400 text-sm font-medium">Receita Bruta</p>
+                <h3
+                  class="text-3xl font-bold text-emerald-600 mt-1"
+                  id="admin-revenue"
+                >
+                  R$ 0,00
+                </h3>
+                <span
+                  class="text-emerald-500 text-xs font-bold flex items-center gap-1 mt-2"
+                  ><i data-lucide="trending-up" class="w-3 h-3"></i> +12%</span
+                >
+              </div>
+              <div
+                class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm"
+              >
+                <p class="text-slate-400 text-sm font-medium">Despesas</p>
+                <h3
+                  class="text-3xl font-bold text-red-600 mt-1"
+                  id="admin-expenses"
+                >
+                  R$ 0,00
+                </h3>
+                <span class="text-slate-400 text-xs font-medium mt-2 block"
+                  >Folha + Impostos</span
+                >
+              </div>
+              <div
+                class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm"
+              >
+                <p class="text-slate-400 text-sm font-medium">Lucro Líquido</p>
+                <h3
+                  class="text-3xl font-bold text-brand-600 mt-1"
+                  id="admin-profit"
+                >
+                  R$ 0,00
+                </h3>
+                <span
+                  class="text-brand-500 text-xs font-bold flex items-center gap-1 mt-2"
+                  >Margem 43%</span
+                >
+              </div>
+              <div
+                class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm"
+              >
+                <p class="text-slate-400 text-sm font-medium">Total Usuários</p>
+                <h3
+                  class="text-3xl font-bold text-slate-800 mt-1"
+                  id="total-users-count"
+                >
+                  0
+                </h3>
+              </div>
+            </div>
+
+            <!-- Gráfico e Detalhamento -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+              <!-- Gráfico Simples (CSS) -->
+              <div
+                class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2"
+              >
+                <h3 class="font-bold text-lg text-slate-800 mb-6">
+                  Pacientes por Mês
+                </h3>
+                <div
+                  class="h-48 flex items-end justify-between gap-2 px-2"
+                  id="chart-patients"
+                >
+                  <!-- Barras geradas via JS -->
+                </div>
+                <div
+                  class="flex justify-between text-xs text-slate-400 mt-2 font-medium"
+                >
+                  <span>Jan</span><span>Fev</span><span>Mar</span
+                  ><span>Abr</span><span>Mai</span><span>Jun</span
+                  ><span>Jul</span><span>Ago</span><span>Set</span
+                  ><span>Out</span><span>Nov</span><span>Dez</span>
+                </div>
+              </div>
+
+              <!-- Lista de Despesas -->
+              <div
+                class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6"
+              >
+                <h3 class="font-bold text-lg text-slate-800 mb-4">
+                  Detalhamento
+                </h3>
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center text-sm">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span class="text-slate-600">Folha Pagamento</span>
+                    </div>
+                    <span class="font-bold text-slate-800" id="detail-payroll"
+                      >R$ 0</span
+                    >
+                  </div>
+                  <div class="flex justify-between items-center text-sm">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                      <span class="text-slate-600">Impostos</span>
+                    </div>
+                    <span class="font-bold text-slate-800" id="detail-taxes"
+                      >R$ 0</span
+                    >
+                  </div>
+                  <div class="flex justify-between items-center text-sm">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                      <span class="text-slate-600">Manutenção</span>
+                    </div>
+                    <span
+                      class="font-bold text-slate-800"
+                      id="detail-maintenance"
+                      >R$ 0</span
+                    >
+                  </div>
+                  <div class="flex justify-between items-center text-sm">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span class="text-slate-600">Insumos</span>
+                    </div>
+                    <span class="font-bold text-slate-800" id="detail-supplies"
+                      >R$ 0</span
+                    >
+                  </div>
+                  <div class="pt-4 border-t border-slate-100 mt-2">
+                    <button
+                      onclick="showPrototypeMessage('Relatório Detalhado')"
+                      class="w-full text-brand-600 text-sm font-bold hover:underline"
+                    >
+                      Ver relatório completo
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabela Usuários -->
+            <div
+              class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+            >
+              <div
+                class="p-6 border-b border-slate-100 flex justify-between items-center"
+              >
+                <h3 class="font-bold text-lg">Gestão de Usuários</h3>
+                <button
+                  onclick="openUserModal()"
+                  class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2"
+                >
+                  <i data-lucide="plus" class="w-4 h-4"></i> Novo Usuário
+                </button>
+              </div>
+              <table class="w-full text-left">
+                <thead
+                  class="bg-slate-50 text-slate-500 text-xs uppercase font-bold"
+                >
+                  <tr>
+                    <th class="px-6 py-4">Nome</th>
+                    <th class="px-6 py-4">Role</th>
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody
+                  class="divide-y divide-slate-100 text-sm"
+                  id="admin-users-table"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- MOBILE NAV (Dinâmico) -->
+      <nav
+        class="md:hidden bg-white border-t border-slate-200 fixed bottom-0 w-full flex justify-around py-3 px-2 z-30 safe-area-bottom"
+        id="mobile-nav-container"
+      >
+        <!-- Injetado via JS -->
+      </nav>
+    </div>
+
+    <!-- ==================== MODAIS ==================== -->
+
+    <!-- Modal ERROR (Novo) -->
+    <div
+      id="modal-error"
+      class="hidden fixed inset-0 z-[110] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center"
+      >
+        <div
+          class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <i data-lucide="alert-circle" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 mb-2">Atenção</h3>
+        <p class="text-slate-500 text-sm mb-6" id="error-msg">
+          Preencha todos os campos.
+        </p>
+        <button
+          onclick="closeModal('modal-error')"
+          class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
+        >
+          Tentar Novamente
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal PROTÓTIPO -->
+    <div
+      id="modal-prototype"
+      class="hidden fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center"
+      >
+        <div
+          class="w-16 h-16 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <i data-lucide="hammer" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 mb-2">
+          Funcionalidade em Breve
+        </h3>
+        <p class="text-slate-500 text-sm mb-6" id="prototype-msg">
+          Este recurso faz parte do escopo futuro do sistema.
+        </p>
+        <button
+          onclick="closeModal('modal-prototype')"
+          class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-colors"
+        >
+          Entendi
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Novo/Editar Usuário (Admin) -->
+    <div
+      id="modal-user"
+      class="hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold" id="user-modal-title">
+            Cadastrar Usuário
+          </h3>
+          <button
+            onclick="closeModal('modal-user')"
+            class="text-slate-400 hover:text-slate-600"
+          >
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+        <form onsubmit="saveUser(event)" class="space-y-4">
+          <input
+            type="text"
+            id="new-user-name"
+            placeholder="Nome Completo"
+            class="w-full px-4 py-3 rounded-lg border border-slate-200"
+            required
+          />
+          <select
+            id="new-user-role"
+            class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white"
+          >
+            <option value="Paciente">Paciente</option>
+            <option value="Médico">Médico</option>
+            <option value="Admin">Admin</option>
+          </select>
+          <select
+            id="new-user-status"
+            class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white"
+          >
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+          </select>
+          <button
+            type="submit"
+            class="w-full bg-brand-600 text-white font-bold py-3 rounded-lg hover:bg-brand-700"
+          >
+            Salvar Dados
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal AGENDAMENTO WIZARD (Atualizado) -->
+    <div
+      id="modal-booking-wizard"
+      class="hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        <div
+          class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4"
+        >
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Agendar Consulta</h3>
+            <p class="text-xs text-slate-500">
+              Selecione o melhor horário para você
+            </p>
+          </div>
+          <button
+            onclick="closeModal('modal-booking-wizard')"
+            class="text-slate-400 hover:text-slate-600"
+          >
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <div class="overflow-y-auto hide-scrollbar space-y-6">
+          <!-- Médico Selecionado -->
+          <div class="flex items-center gap-3 bg-brand-50 p-3 rounded-xl">
+            <img
+              id="wizard-doc-img"
+              src=""
+              class="w-12 h-12 rounded-full border border-white"
+            />
+            <div>
+              <p id="wizard-doc-name" class="font-bold text-slate-800 text-sm">
+                Nome Doutor
+              </p>
+              <p id="wizard-doc-spec" class="text-xs text-brand-600 font-bold">
+                Especialidade
+              </p>
+            </div>
+            <div class="ml-auto text-right">
+              <p id="wizard-doc-price" class="text-sm font-bold text-slate-800">
+                R$ 000
+              </p>
+            </div>
+          </div>
+
+          <!-- Calendário Simulado -->
+          <div>
+            <h4 class="font-bold text-sm mb-3 flex items-center gap-2">
+              <i data-lucide="calendar" class="w-4 h-4 text-brand-500"></i>
+              Selecione o Dia
+            </h4>
+            <div
+              class="grid grid-cols-7 gap-1 text-center mb-2 text-xs font-bold text-slate-400"
+            >
+              <div>DOM</div>
+              <div>SEG</div>
+              <div>TER</div>
+              <div>QUA</div>
+              <div>QUI</div>
+              <div>SEX</div>
+              <div>SÁB</div>
+            </div>
+            <div class="grid grid-cols-7 gap-2" id="booking-calendar-grid">
+              <!-- JS Gera os dias -->
+            </div>
+          </div>
+
+          <!-- Horários -->
+          <div>
+            <h4 class="font-bold text-sm mb-3 flex items-center gap-2">
+              <i data-lucide="clock" class="w-4 h-4 text-brand-500"></i>
+              Selecione o Horário
+            </h4>
+            <div class="grid grid-cols-4 gap-2" id="booking-time-grid">
+              <!-- JS Gera os horários -->
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-100">
+          <button
+            onclick="confirmBooking()"
+            id="btn-confirm-booking"
+            disabled
+            class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Confirmar Agendamento
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal PRONTUÁRIO PROFISSIONAL (Atualizado) -->
+    <div
+      id="modal-medical-record"
+      class="hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white rounded-2xl w-full max-w-4xl h-[85vh] shadow-2xl flex flex-col overflow-hidden"
+      >
+        <!-- Header do Prontuário -->
+        <div
+          class="bg-slate-900 text-white p-6 flex justify-between items-start"
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-2xl font-bold border-2 border-slate-500"
+            >
+              JS
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold" id="record-name">
+                Nome do Paciente
+              </h2>
+              <div class="flex gap-4 text-sm text-slate-400 mt-1">
+                <span id="record-age">-- anos</span> |
+                <span id="record-blood">--</span>
+              </div>
+            </div>
+          </div>
+          <button
+            onclick="closeModal('modal-medical-record')"
+            class="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
+          >
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <!-- Corpo do Prontuário -->
+        <div class="flex-1 overflow-y-auto bg-slate-50 p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Coluna Esquerda: Dados Vitais e Alertas -->
+            <div class="space-y-6">
+              <div
+                class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"
+              >
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">
+                  Dados Biométricos
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-xs text-slate-500">Altura</p>
+                    <p class="text-lg font-bold" id="record-height">--</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-slate-500">Peso</p>
+                    <p class="text-lg font-bold" id="record-weight">--</p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"
+              >
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">
+                  Alertas Clínicos
+                </h4>
+                <div class="space-y-3">
+                  <div>
+                    <p class="text-xs text-slate-500 mb-1">Alergias</p>
+                    <div
+                      class="flex flex-wrap gap-2"
+                      id="record-allergies"
+                    ></div>
+                  </div>
+                  <div>
+                    <p class="text-xs text-slate-500 mb-1">
+                      Condições Crônicas
+                    </p>
+                    <div
+                      class="flex flex-wrap gap-2"
+                      id="record-conditions"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coluna Direita: Linha do Tempo -->
+            <div class="md:col-span-2">
+              <div
+                class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm min-h-full"
+              >
+                <h3
+                  class="font-bold text-lg text-slate-800 mb-6 flex items-center gap-2"
+                >
+                  <i data-lucide="activity" class="text-brand-600"></i>
+                  Histórico Clínico
+                </h3>
+
+                <div
+                  class="relative border-l-2 border-slate-100 pl-6 space-y-8"
+                  id="record-timeline"
+                >
+                  <!-- Timeline Items via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Ações -->
+        <div
+          class="p-4 bg-white border-t border-slate-200 flex justify-end gap-3"
+        >
+          <button
+            onclick="showPrototypeMessage('Solicitar Exame')"
+            class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg font-bold hover:bg-slate-50"
+          >
+            Solicitar Exame
+          </button>
+          <button
+            onclick="closeModal('modal-medical-record'); openPrescriptionModal(document.getElementById('record-name').innerText)"
+            class="px-4 py-2 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700"
+          >
+            Nova Prescrição
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Prescrição (Médico) -->
+    <div
+      id="modal-prescription"
+      class="hidden fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold flex items-center gap-2">
+            <i data-lucide="file-plus" class="text-brand-600"></i> Nova Receita
+          </h3>
+          <button
+            onclick="closeModal('modal-prescription')"
+            class="text-slate-400 hover:text-slate-600"
+          >
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1"
+              >Paciente</label
+            >
+            <input
+              type="text"
+              id="presc-patient-name"
+              class="w-full px-4 py-2 bg-slate-100 rounded-lg border-none text-slate-500"
+              readonly
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1"
+              >Medicamento / Posologia</label
+            >
+            <textarea
+              id="presc-text"
+              rows="4"
+              class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none"
+              placeholder="Ex: Dipirona 500mg - Tomar 1 cp a cada 6h se houver dor..."
+            ></textarea>
+          </div>
+          <button
+            onclick="generatePDF()"
+            class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 flex justify-center gap-2"
+          >
+            <i data-lucide="printer"></i> Emitir Receita Digital
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal PDF Viewer -->
+    <div
+      id="modal-pdf"
+      class="hidden fixed inset-0 z-[80] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white w-full max-w-2xl h-[80vh] rounded-none md:rounded shadow-2xl paper-shadow flex flex-col relative overflow-hidden"
+      >
+        <div
+          class="h-24 bg-slate-50 border-b-2 border-slate-200 flex items-center justify-between px-8"
+        >
+          <div class="flex items-center gap-3">
+            <i data-lucide="activity" class="text-brand-600 w-8 h-8"></i>
+            <div>
+              <h1 class="font-bold text-xl text-slate-800">VidaPlus</h1>
+              <p class="text-xs text-slate-500">Receituário Digital</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-slate-800">Dr. Roberto Silva</p>
+            <p class="text-xs text-slate-500">CRM 54321-SP</p>
+          </div>
+        </div>
+        <div class="flex-1 p-12 bg-white relative font-serif overflow-y-auto">
+          <div class="mb-8 pb-4 border-b border-slate-100">
+            <p class="text-sm text-slate-500">Paciente:</p>
+            <h2 class="text-2xl font-bold text-slate-900" id="pdf-patient">
+              Nome do Paciente
+            </h2>
+          </div>
+          <div class="space-y-6">
+            <div class="flex gap-4 items-start">
+              <span class="font-bold text-2xl text-slate-400">Rx</span>
+              <p
+                class="text-lg leading-relaxed text-slate-800 whitespace-pre-line"
+                id="pdf-content"
+              ></p>
+            </div>
+          </div>
+          <div class="mt-12 pt-8 border-t border-slate-300 text-center">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg"
+              class="h-8 opacity-50 mx-auto mb-1"
+            />
+            <p class="text-xs font-bold text-slate-600">Assinatura Digital</p>
+          </div>
+        </div>
+        <div
+          class="bg-slate-800 p-4 flex justify-between items-center text-white"
+        >
+          <span class="text-sm">Pré-visualização</span>
+          <button
+            onclick="closeModal('modal-pdf')"
+            class="px-4 py-2 bg-white text-slate-900 rounded font-bold hover:bg-slate-200 text-sm"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TELEMEDICINA OVERLAY (RESPONSIVO FULLSCREEN) ==================== -->
+    <div
+      id="telemedicine-overlay"
+      class="fixed inset-0 z-[100] bg-zinc-900 hidden flex flex-col h-full w-full"
+    >
+      <!-- Header -->
+      <div
+        class="absolute top-0 w-full p-4 flex justify-between items-start z-10 bg-gradient-to-b from-black/70 to-transparent"
+      >
+        <div class="flex items-center gap-3">
+          <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+          <div
+            class="bg-black/40 backdrop-blur px-3 py-1 rounded-full border border-white/10"
+          >
+            <span class="text-white text-xs font-bold tracking-wide"
+              >AO VIVO • 12:45</span
+            >
+          </div>
+        </div>
+        <button
+          class="bg-black/40 backdrop-blur p-2 rounded-full text-white hover:bg-white/20"
+        >
+          <i data-lucide="flip-horizontal" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Main Video -->
+      <div
+        class="flex-1 relative w-full h-full bg-zinc-800 flex items-center justify-center overflow-hidden"
+      >
+        <img
+          src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2070&auto=format&fit=crop"
+          class="w-full h-full object-cover opacity-90"
+          alt="Médico"
+        />
+
+        <!-- PIP (Picture in Picture) - Draggable Style -->
+        <div
+          class="absolute bottom-24 right-4 w-32 h-48 md:bottom-8 md:right-8 md:w-48 md:h-64 bg-zinc-700 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl"
+        >
+          <img
+            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Robert"
+            class="w-full h-full object-cover"
+          />
+          <div
+            class="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1 rounded"
+          >
+            Você
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Bar -->
+      <div
+        class="h-20 md:h-24 bg-zinc-900 flex items-center justify-center gap-4 md:gap-8 pb-4 md:pb-0 px-4 safe-area-bottom"
+      >
+        <button
+          onclick="toggleCallBtn(this, 'mic')"
+          class="w-12 h-12 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center transition-all"
+        >
+          <i data-lucide="mic" class="w-5 h-5"></i>
+        </button>
+        <button
+          onclick="toggleCallBtn(this, 'video')"
+          class="w-12 h-12 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center transition-all"
+        >
+          <i data-lucide="video" class="w-5 h-5"></i>
+        </button>
+        <button
+          onclick="closeModal('telemedicine-overlay')"
+          class="w-16 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg shadow-red-500/30 mx-2"
+        >
+          <i data-lucide="phone-off" class="w-6 h-6 fill-current"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center transition-all"
+        >
+          <i data-lucide="message-square" class="w-5 h-5"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center transition-all"
+        >
+          <i data-lucide="more-vertical" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== LOGIC ==================== -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        lucide.createIcons();
+        updateTime();
+        setInterval(updateTime, 60000);
+      });
+
+      function updateTime() {
+        const now = new Date();
+        const el = document.getElementById("system-time-display");
+        if (el)
+          el.innerText = now.toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
+
+      // --- GLOBAL PROTOTYPE HANDLER ---
+      function showPrototypeMessage(msg) {
+        document.getElementById("prototype-msg").innerText = msg
+          ? `A funcionalidade "${msg}" ainda está em desenvolvimento.`
+          : "Este botão é visual. A funcionalidade será implementada em breve.";
+        document.getElementById("modal-prototype").classList.remove("hidden");
+      }
+
+      // --- NAVIGATION & AUTH ---
+      function selectRole(role) {
+        appState.role = role;
+        document
+          .querySelectorAll(".role-card")
+          .forEach(
+            (btn) =>
+              (btn.className =
+                "role-card p-4 rounded-xl border-2 border-transparent hover:border-slate-200 bg-white text-slate-500 flex flex-col items-center gap-2 transition-all cursor-pointer")
+          );
+        const activeBtn = document.getElementById(`role-btn-${role}`);
+        const colors = {
+          patient: "border-brand-500 bg-brand-50 text-brand-700",
+          doctor: "border-green-500 bg-green-50 text-green-700",
+          admin: "border-purple-500 bg-purple-50 text-purple-700",
+        };
+        activeBtn.className = `role-card p-4 rounded-xl border-2 ${colors[role]} flex flex-col items-center gap-2 transition-all cursor-pointer shadow-md transform scale-105`;
+      }
+
+      function handleLogin(e) {
+        e.preventDefault();
+
+        // Validação de Campos Vazios
+        const email = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-password").value.trim();
+
+        if (!email || !password) {
+          let errorMsg = "";
+          if (!email && !password) {
+            errorMsg = "Por favor, informe o e-mail e a senha.";
+          } else if (!email) {
+            errorMsg = "Por favor, informe o seu e-mail.";
+          } else if (!password) {
+            errorMsg = "Por favor, informe a sua senha.";
+          }
+
+          // Exibir modal de erro
+          document.getElementById("error-msg").innerText = errorMsg;
+          document.getElementById("modal-error").classList.remove("hidden");
+          lucide.createIcons(); // Recriar ícones caso necessário
+          return; // Interrompe o login
+        }
+
+        // Login bem-sucedido
+        document.getElementById("view-login").classList.add("hidden");
+        document.getElementById("view-app").classList.remove("hidden");
+        document.getElementById("view-app").classList.add("flex");
+        setupUI();
+        goHome();
+      }
+
+      function setupUI() {
+        const nav = document.getElementById("main-nav");
+        const mobileNav = document.getElementById("mobile-nav-container");
+        const headerName = document.getElementById("header-user-name");
+        const headerRole = document.getElementById("header-user-role");
+        const avatar = document.getElementById("header-user-avatar");
+        let navItems = [],
+          userData = {},
+          mobileActionBtn = "";
+
+        if (appState.role === "patient") {
+          userData = {
+            name: "João da Silva",
+            role: "Paciente",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+          };
+          navItems = [
+            { id: "dashboard-patient", label: "Início", icon: "home" },
+            { id: "view-search", label: "Agendar", icon: "calendar-plus" },
+          ];
+          // Mobile Nav: Paciente vê "Agendar"
+          mobileActionBtn = `<button onclick="navigateTo('view-search')" class="flex flex-col items-center gap-1 text-slate-400"><i data-lucide="calendar-plus" class="w-6 h-6"></i><span class="text-[10px]">Agendar</span></button>`;
+        } else if (appState.role === "doctor") {
+          userData = {
+            name: "Dr. Roberto",
+            role: "Médico",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Robert",
+          };
+          navItems = [
+            { id: "dashboard-doctor", label: "Agenda", icon: "calendar-days" },
+          ];
+          // Mobile Nav: Médico vê "Agenda"
+          mobileActionBtn = `<button onclick="navigateTo('dashboard-doctor')" class="flex flex-col items-center gap-1 text-slate-400"><i data-lucide="calendar-days" class="w-6 h-6"></i><span class="text-[10px]">Agenda</span></button>`;
+        } else {
+          userData = {
+            name: "Admin System",
+            role: "Administrador",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
+          };
+          navItems = [
+            {
+              id: "dashboard-admin",
+              label: "Dashboard",
+              icon: "layout-dashboard",
+            },
+          ];
+          // Mobile Nav: Admin vê "Dashboard"
+          mobileActionBtn = `<button onclick="navigateTo('dashboard-admin')" class="flex flex-col items-center gap-1 text-slate-400"><i data-lucide="bar-chart-2" class="w-6 h-6"></i><span class="text-[10px]">Admin</span></button>`;
+        }
+
+        db.user = userData;
+        headerName.innerText = userData.name;
+        headerRole.innerText = userData.role;
+        avatar.src = userData.avatar;
+
+        // Desktop Nav
+        nav.innerHTML =
+          navItems
+            .map(
+              (item) => `
+                <button onclick="navigateTo('${item.id}')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-brand-600 transition-all font-medium mb-1">
+                    <i data-lucide="${item.icon}" class="w-5 h-5"></i>
+                    <span class="hidden lg:block">${item.label}</span>
+                </button>
+            `
+            )
+            .join("") +
+          `
+            <button onclick="showPrototypeMessage('Configurações')" class="w-full flex items-center gap-3 p-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-brand-600 transition-all font-medium mb-1">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span class="hidden lg:block">Configurações</span>
+            </button>`;
+
+        // Mobile Nav Injection
+        mobileNav.innerHTML = `
+                <button onclick="goHome()" class="flex flex-col items-center gap-1 text-brand-600"><i data-lucide="home" class="w-6 h-6"></i><span class="text-[10px]">Início</span></button>
+                ${mobileActionBtn}
+                <button onclick="logout()" class="flex flex-col items-center gap-1 text-slate-400"><i data-lucide="log-out" class="w-6 h-6"></i><span class="text-[10px]">Sair</span></button>
+            `;
+
+        lucide.createIcons();
+      }
+
+      function navigateTo(viewId) {
+        document
+          .querySelectorAll(".view-section")
+          .forEach((el) => el.classList.add("hidden"));
+        const target = document.getElementById(viewId);
+        if (target) {
+          target.classList.remove("hidden");
+          target.classList.add("fade-enter");
+        }
+        if (viewId === "view-search") renderDoctorsList();
+        if (viewId === "dashboard-patient") renderPatientAppointments();
+        if (viewId === "dashboard-doctor") renderDoctorAgenda();
+        if (viewId === "dashboard-admin") {
+          renderAdminUsers();
+          renderAdminStats();
+        }
+      }
+
+      function goHome() {
+        if (appState.role === "patient") navigateTo("dashboard-patient");
+        if (appState.role === "doctor") navigateTo("dashboard-doctor");
+        if (appState.role === "admin") navigateTo("dashboard-admin");
+      }
+
+      function logout() {
+        location.reload();
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.add("hidden");
+      }
+
+      // --- PACIENTE: BUSCA & AGENDAMENTO WIZARD ---
+      function renderDoctorsList(searchTerm = "") {
+        const grid = document.getElementById("doctors-grid");
+
+        // Filter Logic
+        const filteredDoctors = db.doctors.filter(
+          (doc) =>
+            doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doc.spec.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        if (filteredDoctors.length === 0) {
+          grid.innerHTML = `<div class="col-span-3 text-center text-slate-400 py-10">Nenhum especialista encontrado para "${searchTerm}".</div>`;
+          return;
+        }
+
+        grid.innerHTML = filteredDoctors
+          .map(
+            (doc) => `
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-brand-200 transition-all">
+                    <div class="flex items-start justify-between mb-4">
+                        <img src="${doc.img}" class="w-16 h-16 rounded-full bg-slate-50 shadow-sm border-2 border-white">
+                        <div class="text-right">
+                             <span class="flex items-center justify-end gap-1 text-xs font-bold text-yellow-500 mb-1"><i data-lucide="star" class="w-3 h-3 fill-current"></i> ${doc.rating}</span>
+                             <span class="text-slate-900 font-bold text-sm">${doc.price}</span>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">${doc.name}</h3>
+                    <p class="text-brand-600 text-sm font-medium mb-6">${doc.spec}</p>
+                    <button onclick="openBookingWizard(${doc.id})" class="w-full py-3 rounded-xl bg-slate-50 text-slate-700 font-bold hover:bg-brand-600 hover:text-white transition-all flex justify-center items-center gap-2">
+                        Agendar <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `
+          )
+          .join("");
+        lucide.createIcons();
+      }
+
+      function openBookingWizard(docId) {
+        const doc = db.doctors.find((d) => d.id === docId);
+        appState.booking.doctor = doc;
+        appState.booking.date = null;
+        appState.booking.time = null;
+
+        // Populate Modal Info
+        document.getElementById("wizard-doc-img").src = doc.img;
+        document.getElementById("wizard-doc-name").innerText = doc.name;
+        document.getElementById("wizard-doc-spec").innerText = doc.spec;
+        document.getElementById("wizard-doc-price").innerText = doc.price;
+        document.getElementById("btn-confirm-booking").disabled = true;
+        document.getElementById("btn-confirm-booking").innerText =
+          "Confirmar Agendamento";
+
+        // Generate Calendar
+        renderBookingCalendar();
+        document.getElementById("booking-time-grid").innerHTML =
+          '<p class="text-xs text-slate-400 col-span-4 text-center py-4">Selecione uma data primeiro.</p>';
+
+        document
+          .getElementById("modal-booking-wizard")
+          .classList.remove("hidden");
+      }
+
+      function renderBookingCalendar() {
+        const grid = document.getElementById("booking-calendar-grid");
+        grid.innerHTML = "";
+        // Mock Calendar 30 days
+        for (let i = 1; i <= 30; i++) {
+          const dayDiv = document.createElement("div");
+          dayDiv.className = "calendar-day";
+          dayDiv.innerText = i;
+
+          // Random disabled days
+          if (i % 7 === 0 || i % 6 === 0) {
+            dayDiv.classList.add("disabled");
+          } else {
+            dayDiv.onclick = () => selectDate(i, dayDiv);
+          }
+          grid.appendChild(dayDiv);
+        }
+      }
+
+      function selectDate(day, el) {
+        document
+          .querySelectorAll(".calendar-day")
+          .forEach((d) => d.classList.remove("selected"));
+        el.classList.add("selected");
+        appState.booking.date = `2025-10-${day}`;
+
+        // Generate Time Slots
+        const times = [
+          "08:00",
+          "09:00",
+          "10:30",
+          "14:00",
+          "15:30",
+          "16:00",
+          "17:30",
+        ];
+        const timeGrid = document.getElementById("booking-time-grid");
+        timeGrid.innerHTML = times
+          .map(
+            (t) => `
+                <button onclick="selectTime('${t}', this)" class="time-slot py-2 rounded-lg border border-slate-200 text-sm hover:border-brand-500 hover:text-brand-600 transition-all font-medium">${t}</button>
+            `
+          )
+          .join("");
+        document.getElementById("btn-confirm-booking").disabled = true;
+      }
+
+      function selectTime(time, el) {
+        document
+          .querySelectorAll(".time-slot")
+          .forEach((t) =>
+            t.classList.remove(
+              "bg-brand-600",
+              "text-white",
+              "border-transparent"
+            )
+          );
+        el.classList.add("bg-brand-600", "text-white", "border-transparent");
+        appState.booking.time = time;
+
+        const btn = document.getElementById("btn-confirm-booking");
+        btn.disabled = false;
+        btn.innerText = `Confirmar para ${time}`;
+      }
+
+      function confirmBooking() {
+        const { doctor, date, time } = appState.booking;
+        const newAppt = {
+          id: Date.now(),
+          patientName: db.user.name,
+          doctorName: doctor.name,
+          spec: doctor.spec,
+          date: date,
+          time: time,
+          type: "Telemedicina",
+          status: "Agendado",
+        };
+        db.appointments.push(newAppt);
+        closeModal("modal-booking-wizard");
+        navigateTo("dashboard-patient");
+      }
+
+      function renderPatientAppointments() {
+        const list = document.getElementById("patient-appointments-list");
+        if (db.appointments.length === 0) {
+          list.innerHTML =
+            '<p class="text-slate-400 text-sm text-center">Nenhuma consulta agendada.</p>';
+          return;
+        }
+        list.innerHTML = db.appointments
+          .map(
+            (appt) => `
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
+                    <div class="bg-brand-50 w-16 h-16 rounded-xl flex flex-col items-center justify-center text-brand-700 shrink-0 font-bold">
+                        <span class="text-xs uppercase">DATA</span><span>${
+                          appt.date.split("-")[2] || "24"
+                        }</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-slate-900">${
+                          appt.doctorName
+                        }</h4>
+                        <p class="text-slate-500 text-sm">${appt.spec} • ${
+              appt.time
+            }</p>
+                    </div>
+                    <button onclick="openTelemedicine()" class="bg-slate-900 text-white p-3 rounded-xl hover:bg-slate-700 shadow-lg shadow-slate-900/20"><i data-lucide="video" class="w-4 h-4"></i></button>
+                </div>
+            `
+          )
+          .join("");
+        lucide.createIcons();
+      }
+
+      // --- MÉDICO: AGENDA & PRONTUÁRIO ---
+      function renderDoctorAgenda() {
+        const list = document.getElementById("doctor-agenda-list");
+        const now = new Date();
+        const currentTimeStr = now.toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        if (db.appointments.length > 0)
+          db.appointments[0].time = currentTimeStr;
+
+        list.innerHTML = db.appointments
+          .map((appt) => {
+            const isNow = appt.time === currentTimeStr;
+            // CORREÇÃO: Logic check para o botão
+            const clickAction = isNow
+              ? "openTelemedicine()"
+              : "showPrototypeMessage('A sala só estará disponível no horário agendado.')";
+
+            return `
+                <div class="relative group">
+                    <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full ${
+                      isNow
+                        ? "bg-orange-500 border-4 border-white shadow-sm scale-125"
+                        : "bg-slate-300"
+                    } transition-transform"></div>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-slate-50 p-4 rounded-xl border border-transparent ${
+                      isNow ? "border-orange-200 bg-orange-50" : ""
+                    }">
+                        <div class="w-16 text-center">
+                            <span class="block font-bold text-lg text-slate-800">${
+                              appt.time
+                            }</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-slate-800">${
+                              appt.patientName
+                            }</h4>
+                            <p class="text-xs text-slate-500">${appt.type}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openMedicalRecord('${
+                              appt.patientName
+                            }')" class="p-2 bg-white text-brand-600 border border-brand-200 rounded-lg hover:bg-brand-50 text-xs font-bold flex items-center gap-1">
+                                <i data-lucide="clipboard-list" class="w-4 h-4"></i> Prontuário
+                            </button>
+                            <button onclick="${clickAction}" class="px-4 py-2 ${
+              isNow
+                ? "bg-orange-600 text-white hover:bg-orange-700 animate-pulse-slow"
+                : "bg-slate-200 text-slate-400 cursor-not-allowed"
+            } text-sm font-bold rounded-lg flex items-center gap-1">
+                                <i data-lucide="video" class="w-4 h-4"></i> Sala
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+          })
+          .join("");
+        lucide.createIcons();
+      }
+
+      function openMedicalRecord(patientName) {
+        const record = db.records[patientName] || db.records["João da Silva"]; // Fallback
+
+        document.getElementById("record-name").innerText = patientName;
+        document.getElementById("record-age").innerText = `${record.age} anos`;
+        document.getElementById(
+          "record-blood"
+        ).innerText = `Tipo ${record.bloodType}`;
+        document.getElementById("record-height").innerText = record.height;
+        document.getElementById("record-weight").innerText = record.weight;
+
+        // Allergies
+        document.getElementById("record-allergies").innerHTML = record.allergies
+          .length
+          ? record.allergies
+              .map(
+                (a) =>
+                  `<span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">${a}</span>`
+              )
+              .join("")
+          : '<span class="text-xs text-slate-400">Nenhuma registrada</span>';
+
+        // Conditions
+        document.getElementById("record-conditions").innerHTML = record
+          .conditions.length
+          ? record.conditions
+              .map(
+                (c) =>
+                  `<span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded">${c}</span>`
+              )
+              .join("")
+          : '<span class="text-xs text-slate-400">Nenhuma registrada</span>';
+
+        // Timeline
+        document.getElementById("record-timeline").innerHTML = record.history
+          .map(
+            (h) => `
+                <div class="relative pb-6">
+                    <div class="absolute -left-[31px] top-1 w-3 h-3 bg-slate-300 rounded-full border-2 border-white"></div>
+                    <p class="text-xs text-slate-400 mb-1">${h.date} • ${h.type}</p>
+                    <p class="text-sm text-slate-700 bg-slate-100 p-3 rounded-lg border border-slate-200">${h.note}</p>
+                </div>
+            `
+          )
+          .join("");
+
+        document
+          .getElementById("modal-medical-record")
+          .classList.remove("hidden");
+      }
+
+      function openPrescriptionModal(patientName) {
+        appState.currentPrescriptionPatient = patientName;
+        document.getElementById("presc-patient-name").value = patientName;
+        document
+          .getElementById("modal-prescription")
+          .classList.remove("hidden");
+      }
+
+      // --- ADMIN: USERS & STATS ---
+      function renderAdminUsers() {
+        const tbody = document.getElementById("admin-users-table");
+        document.getElementById("total-users-count").innerText =
+          db.users.length;
+        tbody.innerHTML = db.users
+          .map(
+            (u) => `
+                <tr>
+                    <td class="px-6 py-4 font-medium text-slate-800">${
+                      u.name
+                    }</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-bold">${
+                      u.role
+                    }</span></td>
+                    <td class="px-6 py-4"><span class="w-2 h-2 ${
+                      u.status === "Ativo" ? "bg-green-500" : "bg-red-500"
+                    } rounded-full inline-block mr-2"></span> ${u.status}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="editUser(${
+                          u.id
+                        })" class="text-blue-600 hover:text-blue-800 mr-3"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                        <button onclick="deleteUser(${
+                          u.id
+                        })" class="text-red-600 hover:text-red-800"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>
+            `
+          )
+          .join("");
+        lucide.createIcons();
+      }
+
+      function renderAdminStats() {
+        // Cards
+        const profit =
+          db.financials.revenue -
+          (db.financials.expenses.payroll +
+            db.financials.expenses.taxes +
+            db.financials.expenses.maintenance +
+            db.financials.expenses.supplies);
+        const totalExpenses = db.financials.revenue - profit;
+
+        document.getElementById(
+          "admin-revenue"
+        ).innerText = `R$ ${db.financials.revenue.toLocaleString("pt-BR")}`;
+        document.getElementById(
+          "admin-expenses"
+        ).innerText = `R$ ${totalExpenses.toLocaleString("pt-BR")}`;
+        document.getElementById(
+          "admin-profit"
+        ).innerText = `R$ ${profit.toLocaleString("pt-BR")}`;
+
+        // Details
+        document.getElementById(
+          "detail-payroll"
+        ).innerText = `R$ ${db.financials.expenses.payroll.toLocaleString(
+          "pt-BR"
+        )}`;
+        document.getElementById(
+          "detail-taxes"
+        ).innerText = `R$ ${db.financials.expenses.taxes.toLocaleString(
+          "pt-BR"
+        )}`;
+        document.getElementById(
+          "detail-maintenance"
+        ).innerText = `R$ ${db.financials.expenses.maintenance.toLocaleString(
+          "pt-BR"
+        )}`;
+        document.getElementById(
+          "detail-supplies"
+        ).innerText = `R$ ${db.financials.expenses.supplies.toLocaleString(
+          "pt-BR"
+        )}`;
+
+        // Chart
+        const chartContainer = document.getElementById("chart-patients");
+        chartContainer.innerHTML = "";
+        const maxVal = Math.max(...db.financials.patientsByMonth);
+
+        db.financials.patientsByMonth.forEach((val) => {
+          const heightPct = (val / maxVal) * 100;
+          const bar = document.createElement("div");
+          bar.className =
+            "flex-1 bg-brand-200 hover:bg-brand-500 rounded-t-sm relative group chart-bar cursor-pointer";
+          bar.style.height = "0%"; // Init for animation
+
+          // Tooltip
+          bar.innerHTML = `<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">${val} pacientes</div>`;
+
+          chartContainer.appendChild(bar);
+
+          // Trigger Anim
+          setTimeout(() => (bar.style.height = `${heightPct}%`), 100);
+        });
+      }
+
+      function openUserModal() {
+        appState.editingUserId = null; // Clear edit mode
+        document.getElementById("user-modal-title").innerText =
+          "Cadastrar Usuário";
+        document.getElementById("new-user-name").value = "";
+        document.getElementById("new-user-role").value = "Paciente";
+        document.getElementById("new-user-status").value = "Ativo";
+        document.getElementById("modal-user").classList.remove("hidden");
+      }
+
+      function editUser(id) {
+        const user = db.users.find((u) => u.id === id);
+        if (user) {
+          appState.editingUserId = id;
+          document.getElementById("user-modal-title").innerText =
+            "Editar Usuário";
+          document.getElementById("new-user-name").value = user.name;
+          document.getElementById("new-user-role").value = user.role;
+          document.getElementById("new-user-status").value = user.status;
+          document.getElementById("modal-user").classList.remove("hidden");
+        }
+      }
+
+      function deleteUser(id) {
+        if (confirm("Tem certeza que deseja remover este usuário?")) {
+          db.users = db.users.filter((u) => u.id !== id);
+          renderAdminUsers();
+        }
+      }
+
+      function saveUser(e) {
+        e.preventDefault();
+        const name = document.getElementById("new-user-name").value;
+        const role = document.getElementById("new-user-role").value;
+        const status = document.getElementById("new-user-status").value;
+
+        if (appState.editingUserId) {
+          // Edit existing
+          const index = db.users.findIndex(
+            (u) => u.id === appState.editingUserId
+          );
+          if (index !== -1) {
+            db.users[index] = { ...db.users[index], name, role, status };
+          }
+        } else {
+          // Create new
+          db.users.push({ id: Date.now(), name, role, status });
+        }
+
+        closeModal("modal-user");
+        renderAdminUsers();
+      }
+
+      // --- UTILS ---
+      function openTelemedicine() {
+        document
+          .getElementById("telemedicine-overlay")
+          .classList.remove("hidden");
+      }
+      function generatePDF() {
+        const content = document.getElementById("presc-text").value;
+        if (!content) return alert("Escreva a prescrição.");
+        document.getElementById("pdf-patient").innerText =
+          appState.currentPrescriptionPatient;
+        document.getElementById("pdf-content").innerText = content;
+        closeModal("modal-prescription");
+        document.getElementById("modal-pdf").classList.remove("hidden");
+      }
+      function toggleCallBtn(btn, type) {
+        if (btn.classList.contains("bg-red-500")) {
+          btn.className =
+            "w-12 h-12 rounded-full bg-zinc-700 hover:bg-zinc-600 text-white flex items-center justify-center transition-all";
+          if (type === "mic")
+            btn.innerHTML = '<i data-lucide="mic" class="w-5 h-5"></i>';
+          if (type === "video")
+            btn.innerHTML = '<i data-lucide="video" class="w-5 h-5"></i>';
+        } else {
+          btn.className =
+            "w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all";
+          if (type === "mic")
+            btn.innerHTML = '<i data-lucide="mic-off" class="w-5 h-5"></i>';
+          if (type === "video")
+            btn.innerHTML = '<i data-lucide="video-off" class="w-5 h-5"></i>';
+        }
+        lucide.createIcons();
+      }
+    </script>
+  </body>
+</html>
